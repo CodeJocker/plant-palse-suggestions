@@ -32,32 +32,78 @@ const config = {
     shortRains: { start: 'October', end: 'December', description: 'Short rainy season' }
   },
   
-  // Supported crops with their characteristics
+  // Supported crops with enhanced characteristics
   crops: {
     maize: {
       name: 'Maize',
       waterNeeds: 'high',
       season: 'longRains',
-      growthPeriod: '90-120 days'
+      growthPeriod: '90-120 days',
+      soilPh: { min: 5.5, max: 7.5, optimal: 6.5 },
+      growthStates: ['germination', 'vegetative', 'flowering', 'fruiting'],
+      varieties: {
+        'hybrid_maize': { description: 'High-yield hybrid varieties', droughtResistance: 'moderate' },
+        'local_maize': { description: 'Traditional local varieties', droughtResistance: 'high' },
+        'sweet_corn': { description: 'Sweet corn varieties', droughtResistance: 'low' }
+      }
     },
     beans: {
       name: 'Beans',
       waterNeeds: 'moderate',
       season: 'shortRains',
-      growthPeriod: '60-90 days'
+      growthPeriod: '60-90 days',
+      soilPh: { min: 6.0, max: 7.5, optimal: 6.8 },
+      growthStates: ['germination', 'vegetative', 'flowering', 'fruiting'],
+      varieties: {
+        'climbing_beans': { description: 'Climbing bean varieties', droughtResistance: 'moderate' },
+        'bush_beans': { description: 'Bush bean varieties', droughtResistance: 'high' },
+        'kidney_beans': { description: 'Kidney bean varieties', droughtResistance: 'moderate' }
+      }
     },
     potatoes: {
       name: 'Potatoes',
       waterNeeds: 'moderate',
       season: 'longRains',
-      growthPeriod: '90-120 days'
+      growthPeriod: '90-120 days',
+      soilPh: { min: 5.0, max: 6.5, optimal: 5.8 },
+      growthStates: ['germination', 'vegetative', 'flowering', 'fruiting'],
+      varieties: {
+        'irish_potato': { description: 'Traditional Irish potato', droughtResistance: 'moderate' },
+        'sweet_potato': { description: 'Sweet potato varieties', droughtResistance: 'high' },
+        'new_potato': { description: 'Early maturing varieties', droughtResistance: 'moderate' }
+      }
     },
     bananas: {
       name: 'Bananas',
       waterNeeds: 'high',
       season: 'all',
-      growthPeriod: '9-12 months'
+      growthPeriod: '9-12 months',
+      soilPh: { min: 5.5, max: 7.0, optimal: 6.2 },
+      growthStates: ['germination', 'vegetative', 'flowering', 'fruiting'],
+      varieties: {
+        'cavendish': { description: 'Cavendish banana variety', droughtResistance: 'moderate' },
+        'plantain': { description: 'Plantain varieties', droughtResistance: 'high' },
+        'lady_finger': { description: 'Lady finger banana', droughtResistance: 'low' }
+      }
     }
+  },
+  
+  // Growth states with descriptions
+  growthStates: {
+    germination: { description: 'Seed germination and early seedling stage', duration: '7-14 days' },
+    vegetative: { description: 'Active growth of leaves and stems', duration: '30-60 days' },
+    flowering: { description: 'Flower development and pollination', duration: '7-21 days' },
+    fruiting: { description: 'Fruit development and maturation', duration: '30-90 days' }
+  },
+  
+  // Soil pH categories
+  soilPhCategories: {
+    very_acidic: { range: '4.0-5.0', description: 'Very acidic soil, may need lime application' },
+    acidic: { range: '5.1-6.0', description: 'Acidic soil, suitable for acid-loving crops' },
+    slightly_acidic: { range: '6.1-6.5', description: 'Slightly acidic, good for most crops' },
+    neutral: { range: '6.6-7.3', description: 'Neutral pH, optimal for most crops' },
+    slightly_alkaline: { range: '7.4-7.8', description: 'Slightly alkaline, may need acidification' },
+    alkaline: { range: '7.9-8.5', description: 'Alkaline soil, may limit nutrient availability' }
   },
   
   // Weather thresholds for warnings

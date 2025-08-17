@@ -23,13 +23,16 @@ class AdviceController {
         });
       }
       
-      const { lat, lon, crop, useAI } = req.body;
+      const { lat, lon, crop, soilPh, growthState, variety, useAI } = req.body;
       
       // Generate advice
       const advice = await adviceService.generateAdvice({
         lat: lat ? parseFloat(lat) : undefined,
         lon: lon ? parseFloat(lon) : undefined,
         crop,
+        soilPh: soilPh ? parseFloat(soilPh) : undefined,
+        growthState,
+        variety,
         useAI: useAI !== false // Default to true unless explicitly set to false
       });
       
@@ -75,6 +78,83 @@ class AdviceController {
       res.status(500).json({
         success: false,
         error: 'Failed to retrieve available crops',
+        message: error.message
+      });
+    }
+  }
+  
+  /**
+   * Get crop varieties for a specific crop
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   */
+  async getCropVarieties(req, res) {
+    try {
+      const { crop } = req.params;
+      
+      if (!crop) {
+        return res.status(400).json({
+          success: false,
+          error: 'Crop parameter is required'
+        });
+      }
+      
+      const varieties = await adviceService.getCropVarieties(crop);
+      
+      res.status(200).json({
+        success: true,
+        data: {
+          crop,
+          varieties,
+          count: Object.keys(varieties).length,
+          description: `Available varieties for ${crop}`
+        }
+      });
+      
+    } catch (error) {
+      console.error('Get crop varieties error:', error);
+      
+      if (error.message.includes('Unsupported crop type')) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid crop type',
+          message: error.message,
+          supported_crops: adviceService.getAvailableCrops()
+        });
+      }
+      
+      res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve crop varieties',
+        message: error.message
+      });
+    }
+  }
+  
+  /**
+   * Get available growth states
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   */
+  async getGrowthStates(req, res) {
+    try {
+      const growthStates = adviceService.getGrowthStates();
+      
+      res.status(200).json({
+        success: true,
+        data: {
+          growthStates,
+          count: growthStates.length,
+          description: 'Available growth states for crops'
+        }
+      });
+      
+    } catch (error) {
+      console.error('Get growth states error:', error);
+      
+      res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve growth states',
         message: error.message
       });
     }
@@ -140,6 +220,7 @@ class AdviceController {
   async getBasicAdvice(req, res) {
     try {
       const { crop } = req.params;
+      const { soilPh, growthState, variety } = req.query;
       
       if (!crop) {
         return res.status(400).json({
@@ -148,7 +229,12 @@ class AdviceController {
         });
       }
       
-      const advice = adviceService.getBasicAdvice(crop);
+      const additionalData = {};
+      if (soilPh) additionalData.soilPh = parseFloat(soilPh);
+      if (growthState) additionalData.growthState = growthState;
+      if (variety) additionalData.variety = variety;
+      
+      const advice = adviceService.getBasicAdvice(crop, additionalData);
       
       res.status(200).json({
         success: true,

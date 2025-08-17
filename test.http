@@ -32,6 +32,21 @@ GET {{baseUrl}}/api/advice/crops
 
 ###
 
+# Get crop varieties for maize
+GET {{baseUrl}}/api/advice/varieties/maize
+
+###
+
+# Get crop varieties for beans
+GET {{baseUrl}}/api/advice/varieties/beans
+
+###
+
+# Get available growth states
+GET {{baseUrl}}/api/advice/growth-states
+
+###
+
 # Get current season information
 GET {{baseUrl}}/api/advice/season
 
@@ -112,7 +127,142 @@ Content-Type: application/json
 
 ###
 
-### 5. Error Testing
+### 5. Enhanced Advice with New Fields
+
+# Generate advice for maize with soil pH analysis
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "crop": "maize",
+  "soilPh": 6.2,
+  "useAI": true
+}
+
+###
+
+# Generate advice for beans with growth stage and variety
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "crop": "beans",
+  "growthState": "flowering",
+  "variety": "climbing_beans",
+  "useAI": true
+}
+
+###
+
+# Generate advice for potatoes with all new fields
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "crop": "potatoes",
+  "lat": -1.8000,
+  "lon": 30.2000,
+  "soilPh": 5.5,
+  "growthState": "vegetative",
+  "variety": "irish_potato",
+  "useAI": true
+}
+
+###
+
+# Generate advice for bananas with variety selection
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "crop": "bananas",
+  "growthState": "fruiting",
+  "variety": "cavendish",
+  "useAI": true
+}
+
+###
+
+# Test comprehensive advice with all fields (should include resources and diseases)
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "crop": "maize",
+  "lat": -1.9441,
+  "lon": 30.0619,
+  "soilPh": 6.8,
+  "growthState": "vegetative",
+  "variety": "hybrid_maize",
+  "useAI": true
+}
+
+###
+
+# Test beans during rainy season (should show high disease risk)
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "crop": "beans",
+  "growthState": "flowering",
+  "variety": "climbing_beans",
+  "useAI": true
+}
+
+###
+
+# Test potatoes during dry season (should show drought-related resources)
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "crop": "potatoes",
+  "growthState": "germination",
+  "variety": "irish_potato",
+  "useAI": true
+}
+
+###
+
+### 6. Basic Advice with New Fields
+
+# Basic advice for maize with soil pH
+GET {{baseUrl}}/api/advice/basic/maize?soilPh=6.8
+
+###
+
+# Basic advice for beans with growth state
+GET {{baseUrl}}/api/advice/basic/beans?growthState=germination
+
+###
+
+# Basic advice for potatoes with variety
+GET {{baseUrl}}/api/advice/basic/potatoes?variety=sweet_potato
+
+###
+
+# Basic advice with all new fields
+GET {{baseUrl}}/api/advice/basic/maize?soilPh=5.2&growthState=vegetative&variety=hybrid_maize
+
+###
+
+# Test basic advice for beans to see disease information
+GET {{baseUrl}}/api/advice/basic/beans?growthState=flowering
+
+###
+
+# Test basic advice for potatoes to see resource requirements
+GET {{baseUrl}}/api/advice/basic/potatoes?growthState=germination
+
+###
+
+# Test basic advice for bananas to see variety-specific tips
+GET {{baseUrl}}/api/advice/basic/bananas?variety=cavendish&growthState=fruiting
+
+###
+
+### 7. Error Testing
 
 # Test with invalid crop type
 POST {{baseUrl}}/api/advice
@@ -136,6 +286,28 @@ Content-Type: application/json
 
 ###
 
+# Test with invalid soil pH
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "crop": "maize",
+  "soilPh": 10.0
+}
+
+###
+
+# Test with invalid growth state
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "crop": "maize",
+  "growthState": "invalid_stage"
+}
+
+###
+
 # Test with missing crop
 POST {{baseUrl}}/api/advice
 Content-Type: application/json
@@ -152,7 +324,7 @@ GET {{baseUrl}}/api/invalid
 
 ###
 
-### 6. Performance Testing
+### 8. Performance Testing
 
 # Test multiple requests (for rate limiting)
 # Run this multiple times to test rate limiting
@@ -160,7 +332,7 @@ GET {{baseUrl}}/health
 
 ###
 
-### 7. Edge Cases
+### 9. Edge Cases
 
 # Test with extreme coordinates
 POST {{baseUrl}}/api/advice
@@ -186,7 +358,28 @@ Content-Type: application/json
 
 ###
 
-### 8. Bulk Testing
+# Test with boundary soil pH values
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "crop": "maize",
+  "soilPh": 4.0
+}
+
+###
+
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "crop": "maize",
+  "soilPh": 8.5
+}
+
+###
+
+### 10. Bulk Testing
 
 # Test all crops with basic advice
 GET {{baseUrl}}/api/advice/basic/maize
@@ -199,7 +392,18 @@ GET {{baseUrl}}/api/advice/basic/bananas
 
 ###
 
-### 9. Service Status Check
+# Test all crops with varieties
+GET {{baseUrl}}/api/advice/varieties/maize
+###
+GET {{baseUrl}}/api/advice/varieties/beans
+###
+GET {{baseUrl}}/api/advice/varieties/potatoes
+###
+GET {{baseUrl}}/api/advice/varieties/bananas
+
+###
+
+### 11. Service Status Check
 
 # Check if all services are available
 GET {{baseUrl}}/api/advice/status
@@ -211,15 +415,21 @@ GET {{baseUrl}}/api/advice/status
 # 1. Make sure the server is running
 # 2. Set up your .env file with API keys
 # 3. Test basic endpoints first (health, crops, season)
-# 4. Test basic advice endpoints (no external API calls)
-# 5. Test AI-powered advice (requires valid API keys)
-# 6. Test error scenarios and edge cases
-# 7. Monitor server logs for any issues
+# 4. Test new endpoints (varieties, growth-states)
+# 5. Test basic advice endpoints (no external API calls)
+# 6. Test AI-powered advice (requires valid API keys)
+# 7. Test enhanced advice with new fields (soil pH, growth state, variety)
+# 8. Test resources needed and disease information fields
+# 9. Test error scenarios and edge cases
+# 10. Monitor server logs for any issues
 
 # Expected Responses:
 # - Health endpoints: 200 OK with service status
 # - Basic advice: 200 OK with farming recommendations
 # - AI advice: 200 OK with AI-generated advice (if API keys valid)
+# - New fields: Enhanced advice with soil pH analysis, growth stage tips, variety-specific guidance
+# - Resources needed: Detailed resource requirements with costs and local sources
+# - Disease information: Disease prevention, symptoms, and treatment strategies
 # - Validation errors: 400 Bad Request with error details
 # - Not found: 404 Not Found with available endpoints
 # - Server errors: 500 Internal Server Error

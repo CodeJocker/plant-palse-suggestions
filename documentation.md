@@ -16,23 +16,46 @@
 
 ## 🌾 Overview
 
-The Season-Aware Farming Advisor API is an intelligent agricultural advisory system designed specifically for Rwanda's farming conditions. It combines weather data, seasonal analysis, and AI-powered recommendations to provide farmers with actionable farming advice.
+The Season-Aware Farming Advisor API is an intelligent agricultural advisory system designed specifically for Rwanda's farming conditions. It combines weather data, seasonal analysis, soil conditions, growth stages, variety characteristics, and AI-powered recommendations to provide farmers with comprehensive, actionable farming advice.
 
 ### Key Features
 - **Weather Integration**: Real-time 48-hour weather forecasts
 - **Season Detection**: Automatic Rwanda agricultural season identification
+- **Soil Analysis**: Soil pH suitability assessment and recommendations
+- **Growth Stage Tracking**: Stage-specific care instructions (germination, vegetative, flowering, fruiting)
+- **Variety Selection**: Crop variety-specific characteristics and advice
 - **AI-Powered Advice**: Google Gemini AI integration for personalized recommendations
+- **Comprehensive Resources**: Detailed resource requirements with costs and local sources
+- **Disease Management**: Disease identification, prevention, and treatment strategies
 - **Fallback System**: Basic seasonal advice when external services are unavailable
 - **Crop-Specific Guidance**: Support for maize, beans, potatoes, and bananas
 - **Location Awareness**: GPS-based or default Kigali location support
 
+### What Farmers Receive
+The API provides farmers with a complete farming advisory package:
+
+1. **What to Do** - Specific, actionable farming steps
+2. **What They Need** - Required resources, tools, and materials with cost estimates
+3. **What to Watch For** - Potential diseases and their prevention strategies
+4. **How to Do It Better** - Productivity tips and best practices
+5. **When to Act** - Season and weather-based timing recommendations
+6. **Where to Get Help** - Local sources for resources and supplies
+
 ### Supported Crops
-| Crop | Water Needs | Optimal Season | Growth Period |
-|------|-------------|----------------|---------------|
-| Maize | High | Long Rains (Mar-May) | 90-120 days |
-| Beans | Moderate | Short Rains (Oct-Dec) | 60-90 days |
-| Potatoes | Moderate | Long Rains (Mar-May) | 90-120 days |
-| Bananas | High | All Seasons | 9-12 months |
+| Crop | Water Needs | Optimal Season | Growth Period | Soil pH Range | Varieties |
+|------|-------------|----------------|---------------|---------------|-----------|
+| Maize | High | Long Rains (Mar-May) | 90-120 days | 5.5-7.5 | Hybrid, Local, Sweet Corn |
+| Beans | Moderate | Short Rains (Oct-Dec) | 60-90 days | 6.0-7.5 | Climbing, Bush, Kidney |
+| Potatoes | Moderate | Long Rains (Mar-May) | 90-120 days | 5.0-6.5 | Irish, Sweet, New |
+| Bananas | High | All Seasons | 9-12 months | 5.5-7.0 | Cavendish, Plantain, Lady Finger |
+
+### Growth Stages
+| Stage | Description | Duration | Care Focus |
+|-------|-------------|----------|------------|
+| Germination | Seed germination and early seedling | 7-14 days | Moisture, protection |
+| Vegetative | Active growth of leaves and stems | 30-60 days | Nitrogen, weed control |
+| Flowering | Flower development and pollination | 7-21 days | Water, pollinator protection |
+| Fruiting | Fruit development and maturation | 30-90 days | Balanced nutrition, support |
 
 ### Agricultural Seasons
 | Season | Period | Description |
@@ -136,6 +159,54 @@ All API responses follow this structure:
 }
 ```
 
+### Enhanced Response Fields
+
+The farming advice endpoints now return comprehensive information including:
+
+#### 1. **Resources Needed** (`resources_needed`)
+Array of objects containing farming resources, tools, and materials:
+
+```json
+{
+  "resource": "Resource name",
+  "purpose": "What it's used for",
+  "quantity": "Recommended amount",
+  "cost_estimate": "Approximate cost in Rwandan Francs (RWF)",
+  "where_to_get": "Where to purchase or obtain"
+}
+```
+
+**Examples:**
+- **Fertilizers**: NPK, organic compost, micronutrients
+- **Tools**: Planting equipment, harvesting tools, irrigation systems
+- **Protection**: Pesticides, fungicides, shade nets, wind barriers
+- **Monitoring**: Soil moisture meters, pH testers
+
+#### 2. **Possible Diseases** (`possible_diseases`)
+Array of objects containing crop disease information:
+
+```json
+{
+  "disease_name": "Common disease name",
+  "symptoms": "What to look for",
+  "risk_factors": "Conditions that increase risk",
+  "prevention": "How to prevent it",
+  "treatment": "How to treat if detected",
+  "seasonal_risk": "High/Medium/Low risk during current season"
+}
+```
+
+**Disease Categories:**
+- **Fungal Diseases**: Common during rainy seasons
+- **Viral Diseases**: Often spread by insects
+- **Bacterial Diseases**: Can affect multiple crops
+- **Nutrient Deficiencies**: Related to soil conditions
+
+#### 3. **Enhanced Analysis Fields**
+- **`soil_ph_analysis`**: Detailed soil pH suitability assessment
+- **`growth_stage_advice`**: Stage-specific care instructions
+- **`variety_specific_tips`**: Variety-specific characteristics and needs
+
 ### Endpoints
 
 #### 1. Health Check Endpoints
@@ -234,6 +305,53 @@ Get list of supported crop types.
 }
 ```
 
+##### GET /api/advice/varieties/:crop
+Get available varieties for a specific crop.
+
+**Parameters:**
+- `crop` (path parameter): Crop type (maize, beans, potatoes, bananas)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "crop": "maize",
+    "varieties": {
+      "hybrid_maize": {
+        "description": "High-yield hybrid varieties",
+        "droughtResistance": "moderate"
+      },
+      "local_maize": {
+        "description": "Traditional local varieties",
+        "droughtResistance": "high"
+      },
+      "sweet_corn": {
+        "description": "Sweet corn varieties",
+        "droughtResistance": "low"
+      }
+    },
+    "count": 3,
+    "description": "Available varieties for maize"
+  }
+}
+```
+
+##### GET /api/advice/growth-states
+Get available growth states.
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "growthStates": ["germination", "vegetative", "flowering", "fruiting"],
+    "count": 4,
+    "description": "Available growth states for crops"
+  }
+}
+```
+
 ##### GET /api/advice/season
 Get current agricultural season information.
 
@@ -284,6 +402,9 @@ Get basic farming advice without external API calls (for testing/fallback).
 
 **Parameters:**
 - `crop` (path parameter): Crop type (maize, beans, potatoes, bananas)
+- `soilPh` (query parameter, optional): Soil pH value (4.0-8.5)
+- `growthState` (query parameter, optional): Growth stage
+- `variety` (query parameter, optional): Crop variety
 
 **Response:**
 ```json
@@ -293,10 +414,56 @@ Get basic farming advice without external API calls (for testing/fallback).
     "forecast_summary": "Weather forecast for next 48 hours: 0mm rainfall, 15°C to 25°C, wind up to 10 km/h",
     "season": "longDry",
     "crop": "maize",
+    "soil_ph_analysis": "Soil pH 6.2 analysis: Soil pH 6.2 is suitable for maize",
+    "growth_stage_advice": "Growth stage vegetative: Active growth of leaves and stems",
+    "variety_specific_tips": "Variety hybrid_maize: High-yield hybrid varieties with moderate drought resistance",
     "actions": [
       "Implement water conservation techniques",
       "Use shade nets for sensitive crops",
-      "Focus on drought-tolerant crops"
+      "Focus on drought-tolerant crops",
+      "Provide adequate nitrogen for leaf and stem development",
+      "Control weeds to reduce competition for nutrients"
+    ],
+    "resources_needed": [
+      {
+        "resource": "Shade nets",
+        "purpose": "Protect crops from excessive sun",
+        "quantity": "Cover entire field area",
+        "cost_estimate": "30,000-80,000 RWF per hectare",
+        "where_to_get": "Agricultural supply stores"
+      },
+      {
+        "resource": "Nitrogen fertilizer (NPK)",
+        "purpose": "Provide essential nutrients for growth",
+        "quantity": "200-300 kg per hectare",
+        "cost_estimate": "80,000-120,000 RWF per hectare",
+        "where_to_get": "Agricultural cooperatives, fertilizer suppliers"
+      },
+      {
+        "resource": "Weed control herbicides",
+        "purpose": "Control competing weeds",
+        "quantity": "2-3 applications per season",
+        "cost_estimate": "15,000-25,000 RWF per application",
+        "where_to_get": "Agricultural chemical suppliers"
+      }
+    ],
+    "possible_diseases": [
+      {
+        "disease_name": "Maize Lethal Necrosis",
+        "symptoms": "Yellowing leaves, stunted growth, poor grain development",
+        "risk_factors": "High humidity, poor drainage, infected seeds",
+        "prevention": "Use certified seeds, maintain field hygiene, proper spacing",
+        "treatment": "Remove infected plants, apply fungicides if early detected",
+        "seasonal_risk": "Medium"
+      },
+      {
+        "disease_name": "Common Rust",
+        "symptoms": "Reddish-brown pustules on leaves, reduced photosynthesis",
+        "risk_factors": "High humidity, dense planting, poor air circulation",
+        "prevention": "Plant resistant varieties, maintain proper spacing",
+        "treatment": "Apply fungicides, remove infected plant debris",
+        "seasonal_risk": "Low"
+      }
     ],
     "warnings": [
       "No rainfall expected in the next 48 hours. Consider irrigation for water-dependent crops."
@@ -304,7 +471,9 @@ Get basic farming advice without external API calls (for testing/fallback).
     "productivity_tips": [
       "Plant in rows with proper spacing (75cm between rows)",
       "Apply nitrogen fertilizer in split applications",
-      "Control weeds early in the growing season"
+      "Control weeds early in the growing season",
+      "Soil pH 6.2 is optimal for maize growth",
+      "Current growth stage: Active growth of leaves and stems (30-60 days)"
     ]
   },
   "message": "Basic farming advice generated successfully",
@@ -313,7 +482,7 @@ Get basic farming advice without external API calls (for testing/fallback).
 ```
 
 ##### POST /api/advice
-Generate comprehensive farming advice based on location, crop, and weather.
+Generate comprehensive farming advice based on location, crop, weather, soil pH, growth stage, and variety.
 
 **Request Body:**
 ```json
@@ -321,6 +490,9 @@ Generate comprehensive farming advice based on location, crop, and weather.
   "crop": "maize",
   "lat": -1.9441,
   "lon": 30.0619,
+  "soilPh": 6.2,
+  "growthState": "vegetative",
+  "variety": "hybrid_maize",
   "useAI": true
 }
 ```
@@ -329,6 +501,9 @@ Generate comprehensive farming advice based on location, crop, and weather.
 - `crop` (required): Crop type (maize, beans, potatoes, bananas)
 - `lat` (optional): Latitude (-90 to 90, defaults to Kigali)
 - `lon` (optional): Longitude (-180 to 180, defaults to Kigali)
+- `soilPh` (optional): Soil pH value (4.0 to 8.5)
+- `growthState` (optional): Growth stage (germination, vegetative, flowering, fruiting)
+- `variety` (optional): Crop variety (see varieties endpoint)
 - `useAI` (optional): Whether to use AI (defaults to true)
 
 **Response:**
@@ -339,9 +514,46 @@ Generate comprehensive farming advice based on location, crop, and weather.
     "forecast_summary": "Weather conditions summary...",
     "season": "longRains",
     "crop": "maize",
+    "soil_ph_analysis": "Analysis of soil pH suitability and recommendations",
+    "growth_stage_advice": "Specific advice for the current growth stage",
+    "variety_specific_tips": "Tips specific to the selected variety",
     "actions": [
       "Action 1: Specific farming step",
       "Action 2: Another farming step"
+    ],
+    "resources_needed": [
+      {
+        "resource": "Nitrogen fertilizer (NPK)",
+        "purpose": "Provide essential nutrients for growth",
+        "quantity": "200-300 kg per hectare",
+        "cost_estimate": "80,000-120,000 RWF per hectare",
+        "where_to_get": "Agricultural cooperatives, fertilizer suppliers"
+      },
+      {
+        "resource": "Weed control herbicides",
+        "purpose": "Control competing weeds",
+        "quantity": "2-3 applications per season",
+        "cost_estimate": "15,000-25,000 RWF per application",
+        "where_to_get": "Agricultural chemical suppliers"
+      }
+    ],
+    "possible_diseases": [
+      {
+        "disease_name": "Maize Lethal Necrosis",
+        "symptoms": "Yellowing leaves, stunted growth, poor grain development",
+        "risk_factors": "High humidity, poor drainage, infected seeds",
+        "prevention": "Use certified seeds, maintain field hygiene, proper spacing",
+        "treatment": "Remove infected plants, apply fungicides if early detected",
+        "seasonal_risk": "High"
+      },
+      {
+        "disease_name": "Common Rust",
+        "symptoms": "Reddish-brown pustules on leaves, reduced photosynthesis",
+        "risk_factors": "High humidity, dense planting, poor air circulation",
+        "prevention": "Plant resistant varieties, maintain proper spacing",
+        "treatment": "Apply fungicides, remove infected plant debris",
+        "seasonal_risk": "Medium"
+      }
     ],
     "warnings": [
       "Warning about potential risks"
@@ -355,6 +567,11 @@ Generate comprehensive farming advice based on location, crop, and weather.
       "location": {
         "lat": -1.9441,
         "lon": 30.0619
+      },
+      "additional_data": {
+        "soilPh": 6.2,
+        "growthState": "vegetative",
+        "variety": "hybrid_maize"
       },
       "weather_service_available": true,
       "ai_service_available": true,
@@ -467,9 +684,14 @@ origin: ['https://yourdomain.com']
   "message": "Validation failed",
   "details": [
     {
-      "field": "crop",
-      "message": "Crop type must be one of: maize, beans, potatoes, bananas",
-      "value": "invalid_crop"
+      "field": "soilPh",
+      "message": "Soil pH must be between 4.0 and 8.5",
+      "value": 10.0
+    },
+    {
+      "field": "growthState",
+      "message": "Growth state must be one of: germination, vegetative, flowering, fruiting",
+      "value": "invalid_stage"
     }
   ]
 }
@@ -546,6 +768,18 @@ weatherThresholds: {
     moderate: 7.5,  // mm
     heavy: 15       // mm
   }
+}
+```
+
+### Soil pH Categories
+```javascript
+soilPhCategories: {
+  very_acidic: { range: '4.0-5.0', description: 'Very acidic soil, may need lime application' },
+  acidic: { range: '5.1-6.0', description: 'Acidic soil, suitable for acid-loving crops' },
+  slightly_acidic: { range: '6.1-6.5', description: 'Slightly acidic, good for most crops' },
+  neutral: { range: '6.6-7.3', description: 'Neutral pH, optimal for most crops' },
+  slightly_alkaline: { range: '7.4-7.8', description: 'Slightly alkaline, may need acidification' },
+  alkaline: { range: '7.9-8.5', description: 'Alkaline soil, may limit nutrient availability' }
 }
 ```
 
@@ -647,13 +881,22 @@ curl http://localhost:3000/health
 # Get available crops
 curl http://localhost:3000/api/advice/crops
 
+# Get crop varieties
+curl http://localhost:3000/api/advice/varieties/maize
+
+# Get growth states
+curl http://localhost:3000/api/advice/growth-states
+
 # Get current season
 curl http://localhost:3000/api/advice/season
 
-# Generate advice
+# Generate advice with new fields
 curl -X POST http://localhost:3000/api/advice \
   -H "Content-Type: application/json" \
-  -d '{"crop": "maize", "useAI": false}'
+  -d '{"crop": "maize", "soilPh": 6.2, "growthState": "vegetative", "variety": "hybrid_maize"}'
+
+# Test basic advice with enhanced fields
+curl "http://localhost:3000/api/advice/basic/maize?soilPh=6.2&growthState=vegetative&variety=hybrid_maize"
 ```
 
 ### Testing with test.http
@@ -676,26 +919,99 @@ npm test -- --grep "weather"
 ```
 
 ### Test Data Examples
+
+#### Enhanced Request with All New Fields
 ```json
-// Valid request
 {
   "crop": "maize",
   "lat": -1.9441,
   "lon": 30.0619,
+  "soilPh": 6.2,
+  "growthState": "vegetative",
+  "variety": "hybrid_maize",
   "useAI": true
 }
+```
 
-// Invalid crop
+#### Expected Response Structure
+```json
 {
-  "crop": "invalid_crop"
+  "success": true,
+  "data": {
+    "forecast_summary": "Weather conditions summary...",
+    "season": "longRains",
+    "crop": "maize",
+    "soil_ph_analysis": "Soil pH 6.2 is optimal for maize growth",
+    "growth_stage_advice": "During vegetative stage, focus on nitrogen application",
+    "variety_specific_tips": "Hybrid maize requires regular fertilization",
+    "actions": [
+      "Apply nitrogen fertilizer for leaf development",
+      "Control weeds early in the season"
+    ],
+    "resources_needed": [
+      {
+        "resource": "Nitrogen fertilizer (NPK)",
+        "purpose": "Provide essential nutrients for growth",
+        "quantity": "200-300 kg per hectare",
+        "cost_estimate": "80,000-120,000 RWF per hectare",
+        "where_to_get": "Agricultural cooperatives"
+      }
+    ],
+    "possible_diseases": [
+      {
+        "disease_name": "Maize Lethal Necrosis",
+        "symptoms": "Yellowing leaves, stunted growth",
+        "risk_factors": "High humidity, poor drainage",
+        "prevention": "Use certified seeds, maintain hygiene",
+        "treatment": "Remove infected plants",
+        "seasonal_risk": "High"
+      }
+    ],
+    "warnings": ["Monitor for disease symptoms during rainy season"],
+    "productivity_tips": ["Plant in rows with proper spacing"]
+  }
 }
+```
 
-// Invalid coordinates
-{
-  "crop": "maize",
-  "lat": 100,
-  "lon": 200
-}
+#### Testing Different Scenarios
+```bash
+# Test soil pH analysis
+curl -X POST http://localhost:3000/api/advice \
+  -H "Content-Type: application/json" \
+  -d '{"crop": "maize", "soilPh": 5.0}'
+
+# Test growth stage advice
+curl -X POST http://localhost:3000/api/advice \
+  -H "Content-Type: application/json" \
+  -d '{"crop": "beans", "growthState": "flowering"}'
+
+# Test variety-specific advice
+curl -X POST http://localhost:3000/api/advice \
+  -H "Content-Type: application/json" \
+  -d '{"crop": "potatoes", "variety": "sweet_potato"}'
+
+# Test comprehensive advice
+curl -X POST http://localhost:3000/api/advice \
+  -H "Content-Type: application/json" \
+  -d '{"crop": "bananas", "soilPh": 6.5, "growthState": "fruiting", "variety": "cavendish"}'
+```
+
+#### Validation Testing
+```bash
+# Test invalid soil pH
+curl -X POST http://localhost:3000/api/advice \
+  -H "Content-Type: application/json" \
+  -d '{"crop": "maize", "soilPh": 10.0}'
+
+# Test invalid growth state
+curl -X POST http://localhost:3000/api/advice \
+  -H "Content-Type: application/json" \
+  -d '{"crop": "maize", "growthState": "invalid_stage"}'
+
+# Test missing required fields
+curl -X POST http://localhost:3000/api/advice \
+  -H "Content-Type: application/json" \
+  -d '{"lat": -1.9441, "lon": 30.0619}'
 ```
 
 ---
@@ -827,6 +1143,9 @@ docker logs season-aware-farming-advisor 2>&1 | grep ERROR
 - [ ] Multi-language support (Kinyarwanda)
 - [ ] SMS integration for farmers without internet
 - [ ] Machine learning for improved predictions
+- [ ] Soil testing kit integration
+- [ ] Satellite imagery analysis
+- [ ] Crop disease detection
 
 ### API Versioning
 - Current version: v1.0.0
@@ -839,6 +1158,7 @@ docker logs season-aware-farming-advisor 2>&1 | grep ERROR
 - IoT weather stations
 - Agricultural management systems
 - Government farming programs
+- Soil testing laboratories
 
 ---
 

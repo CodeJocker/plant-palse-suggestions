@@ -19,16 +19,17 @@ class GeminiService {
    * @param {Object} forecastSummary - Weather forecast summary
    * @param {string} season - Current agricultural season
    * @param {string} cropType - Type of crop
+   * @param {Object} additionalData - Additional data (soil pH, growth state, variety)
    * @returns {Promise<Object>} AI-generated farming advice
    */
-  async generateAdvice(forecastSummary, season, cropType) {
+  async generateAdvice(forecastSummary, season, cropType, additionalData = {}) {
     if (!this.apiKey) {
       throw new Error('Gemini API key not configured');
     }
     
     try {
       // Create a well-designed prompt for the AI
-      const prompt = this.createAdvicePrompt(forecastSummary, season, cropType);
+      const prompt = this.createAdvicePrompt(forecastSummary, season, cropType, additionalData);
       
       const response = await axios.post(
         `${this.baseUrl}?key=${this.apiKey}`,
@@ -55,7 +56,7 @@ class GeminiService {
       }
       
       // Parse the AI response to extract structured advice
-      return this.parseAIResponse(aiResponse, forecastSummary, season, cropType);
+      return this.parseAIResponse(aiResponse, forecastSummary, season, cropType, additionalData);
       
     } catch (error) {
       if (error.response) {
@@ -89,16 +90,33 @@ class GeminiService {
    * @param {Object} forecastSummary - Weather forecast summary
    * @param {string} season - Current agricultural season
    * @param {string} cropType - Type of crop
+   * @param {Object} additionalData - Additional data (soil pH, growth state, variety)
    * @returns {string} Formatted prompt for the AI
    */
-  createAdvicePrompt(forecastSummary, season, cropType) {
+  createAdvicePrompt(forecastSummary, season, cropType, additionalData = {}) {
+    const { soilPh, growthState, variety } = additionalData;
+    
+    let additionalInfo = '';
+    
+    if (soilPh !== undefined && soilPh !== null) {
+      additionalInfo += `\nSOIL pH: ${soilPh}`;
+    }
+    
+    if (growthState) {
+      additionalInfo += `\nGROWTH STAGE: ${growthState}`;
+    }
+    
+    if (variety) {
+      additionalInfo += `\nVARIETY: ${variety}`;
+    }
+    
     return `You are an expert agricultural advisor specializing in Rwanda's farming conditions. 
 
 Based on the following information, provide specific, actionable farming advice:
 
 LOCATION: ${forecastSummary.location.name} (${forecastSummary.location.lat}, ${forecastSummary.location.lon})
 CURRENT SEASON: ${season}
-CROP: ${cropType}
+CROP: ${cropType}${additionalInfo}
 
 WEATHER FORECAST (Next 48 hours):
 - Total Rainfall: ${forecastSummary.totalRainfall}mm
@@ -114,10 +132,32 @@ Please provide farming advice in the following JSON format ONLY (no other text):
   "forecast_summary": "Brief summary of weather conditions and their impact on farming",
   "season": "${season}",
   "crop": "${cropType}",
+  "soil_ph_analysis": "Analysis of soil pH suitability and recommendations",
+  "growth_stage_advice": "Specific advice for the current growth stage",
+  "variety_specific_tips": "Tips specific to the selected variety",
   "actions": [
     "Action 1: Specific, actionable step the farmer should take",
     "Action 2: Another specific step",
     "Action 3: Third specific step"
+  ],
+  "resources_needed": [
+    {
+      "resource": "Resource name",
+      "purpose": "What it's used for",
+      "quantity": "Recommended amount",
+      "cost_estimate": "Approximate cost in Rwandan Francs",
+      "where_to_get": "Where to purchase or obtain"
+    }
+  ],
+  "possible_diseases": [
+    {
+      "disease_name": "Common disease name",
+      "symptoms": "What to look for",
+      "risk_factors": "Conditions that increase risk",
+      "prevention": "How to prevent it",
+      "treatment": "How to treat if detected",
+      "seasonal_risk": "High/Medium/Low risk during current season"
+    }
   ],
   "warnings": [
     "Warning 1: Specific risk or thing to avoid",
@@ -137,7 +177,15 @@ IMPORTANT GUIDELINES:
 5. Suggest productivity improvements based on current conditions
 6. Keep all advice realistic and achievable
 7. Consider water management, pest control, and crop protection
-8. Return ONLY valid JSON, no additional text or explanations`;
+8. If soil pH is provided, analyze its suitability for the crop and provide specific recommendations
+9. If growth stage is specified, provide stage-specific care instructions
+10. If variety is specified, consider variety-specific characteristics and needs
+11. For resources needed, include common farming tools, fertilizers, pesticides, and materials
+12. For diseases, focus on common diseases in Rwanda that affect the specific crop
+13. Consider seasonal disease risks (e.g., fungal diseases during rainy seasons)
+14. Include cost estimates in Rwandan Francs (RWF) for resources
+15. Suggest local sources for obtaining resources
+16. Return ONLY valid JSON, no additional text or explanations`;
   }
   
   /**
@@ -146,9 +194,10 @@ IMPORTANT GUIDELINES:
    * @param {Object} forecastSummary - Weather forecast summary
    * @param {string} season - Current agricultural season
    * @param {string} cropType - Type of crop
+   * @param {Object} additionalData - Additional data used in the request
    * @returns {Object} Parsed and validated farming advice
    */
-  parseAIResponse(aiResponse, forecastSummary, season, cropType) {
+  parseAIResponse(aiResponse, forecastSummary, season, cropType, additionalData = {}) {
     try {
       // Try to extract JSON from the response
       let jsonStart = aiResponse.indexOf('{');
@@ -179,7 +228,8 @@ IMPORTANT GUIDELINES:
         generated_at: new Date().toISOString(),
         source: 'gemini_ai',
         weather_data: forecastSummary,
-        prompt_version: '1.0'
+        additional_data: additionalData,
+        prompt_version: '2.0'
       };
       
       return advice;

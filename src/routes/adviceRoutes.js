@@ -18,6 +18,20 @@ router.post('/', adviceController.generateAdvice);
 router.get('/crops', adviceController.getAvailableCrops);
 
 /**
+ * @route GET /api/advice/varieties/:crop
+ * @desc Get available varieties for a specific crop
+ * @access Public
+ */
+router.get('/varieties/:crop', adviceController.getCropVarieties);
+
+/**
+ * @route GET /api/advice/growth-states
+ * @desc Get available growth states
+ * @access Public
+ */
+router.get('/growth-states', adviceController.getGrowthStates);
+
+/**
  * @route GET /api/advice/season
  * @desc Get current agricultural season information
  * @access Public

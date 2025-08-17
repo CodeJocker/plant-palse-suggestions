@@ -1,4 +1,5 @@
 import Joi from 'joi';
+import config from '../config/config.js';
 
 /**
  * Validation schema for advice request
@@ -24,6 +25,24 @@ const adviceRequestSchema = Joi.object({
       'string.empty': 'Crop type is required',
       'any.required': 'Crop type is required',
       'any.only': 'Crop type must be one of: maize, beans, potatoes, bananas'
+    }),
+  
+  soilPh: Joi.number().min(4.0).max(8.5).optional()
+    .messages({
+      'number.base': 'Soil pH must be a number',
+      'number.min': 'Soil pH must be between 4.0 and 8.5',
+      'number.max': 'Soil pH must be between 4.0 and 8.5'
+    }),
+  
+  growthState: Joi.string().valid('germination', 'vegetative', 'flowering', 'fruiting').optional()
+    .messages({
+      'string.empty': 'Growth state cannot be empty',
+      'any.only': 'Growth state must be one of: germination, vegetative, flowering, fruiting'
+    }),
+  
+  variety: Joi.string().optional()
+    .messages({
+      'string.empty': 'Variety cannot be empty'
     }),
   
   useAI: Joi.boolean().optional()
@@ -105,7 +124,7 @@ export const validateCoordinates = (data) => {
     
     return {
       isValid: false,
-      errors,
+      errors: [],
       value: null
     };
   }
@@ -145,7 +164,69 @@ export const validateCropType = (cropType) => {
     
     return {
       isValid: false,
-      errors,
+      errors: [],
+      value: null
+    };
+  }
+  
+  return {
+    isValid: true,
+    errors: [],
+    value
+  };
+};
+
+/**
+ * Validate soil pH
+ * @param {number} soilPh - Soil pH value to validate
+ * @returns {Object} Validation result
+ */
+export const validateSoilPh = (soilPh) => {
+  if (soilPh === undefined || soilPh === null) {
+    return { isValid: true, errors: [], value: null };
+  }
+  
+  const { error, value } = Joi.number().min(4.0).max(8.5).validate(soilPh);
+  
+  if (error) {
+    return {
+      isValid: false,
+      errors: [{
+        field: 'soilPh',
+        message: 'Soil pH must be between 4.0 and 8.5',
+        value: soilPh
+      }],
+      value: null
+    };
+  }
+  
+  return {
+    isValid: true,
+    errors: [],
+    value
+  };
+};
+
+/**
+ * Validate growth state
+ * @param {string} growthState - Growth state to validate
+ * @returns {Object} Validation result
+ */
+export const validateGrowthState = (growthState) => {
+  if (growthState === undefined || growthState === null) {
+    return { isValid: true, errors: [], value: null };
+  }
+  
+  const { error, value } = Joi.string().valid('germination', 'vegetative', 'flowering', 'fruiting').validate(growthState);
+  
+  if (error) {
+    return {
+      isValid: false,
+      errors: [{
+        field: 'growthState',
+        message: 'Growth state must be one of: germination, vegetative, flowering, fruiting',
+        value: growthState
+      }],
       value: null
     };
   }
