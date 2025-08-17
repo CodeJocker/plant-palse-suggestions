@@ -1,0 +1,225 @@
+### Season-Aware Farming Advisor API Tests
+
+# Base URL - change this if running on different port
+@baseUrl = http://localhost:3000
+
+### 1. Health Checks
+
+# Basic health check
+GET {{baseUrl}}/health
+
+###
+
+# Detailed health check
+GET {{baseUrl}}/health/detailed
+
+###
+
+# Configuration health check
+GET {{baseUrl}}/health/config
+
+###
+
+### 2. Root endpoint
+GET {{baseUrl}}/
+
+###
+
+### 3. Advice API Endpoints
+
+# Get available crops
+GET {{baseUrl}}/api/advice/crops
+
+###
+
+# Get current season information
+GET {{baseUrl}}/api/advice/season
+
+###
+
+# Get service status
+GET {{baseUrl}}/api/advice/status
+
+###
+
+# Get basic advice for maize (no external APIs)
+GET {{baseUrl}}/api/advice/basic/maize
+
+###
+
+# Get basic advice for beans
+GET {{baseUrl}}/api/advice/basic/beans
+
+###
+
+# Get basic advice for potatoes
+GET {{baseUrl}}/api/advice/basic/potatoes
+
+###
+
+# Get basic advice for bananas
+GET {{baseUrl}}/api/advice/basic/bananas
+
+###
+
+### 4. Generate AI-Powered Advice
+
+# Generate advice for maize in Kigali (default location)
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "crop": "maize",
+  "useAI": true
+}
+
+###
+
+# Generate advice for beans with custom coordinates
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "crop": "beans",
+  "lat": -2.0000,
+  "lon": 30.0000,
+  "useAI": true
+}
+
+###
+
+# Generate advice for potatoes without AI (fallback to basic)
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "crop": "potatoes",
+  "lat": -1.8000,
+  "lon": 30.2000,
+  "useAI": false
+}
+
+###
+
+# Generate advice for bananas in Kigali
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "crop": "bananas",
+  "useAI": true
+}
+
+###
+
+### 5. Error Testing
+
+# Test with invalid crop type
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "crop": "invalid_crop"
+}
+
+###
+
+# Test with invalid coordinates
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "crop": "maize",
+  "lat": 100,
+  "lon": 200
+}
+
+###
+
+# Test with missing crop
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "lat": -1.9441,
+  "lon": 30.0619
+}
+
+###
+
+# Test invalid endpoint
+GET {{baseUrl}}/api/invalid
+
+###
+
+### 6. Performance Testing
+
+# Test multiple requests (for rate limiting)
+# Run this multiple times to test rate limiting
+GET {{baseUrl}}/health
+
+###
+
+### 7. Edge Cases
+
+# Test with extreme coordinates
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "crop": "maize",
+  "lat": -90.0000,
+  "lon": -180.0000
+}
+
+###
+
+# Test with boundary coordinates
+POST {{baseUrl}}/api/advice
+Content-Type: application/json
+
+{
+  "crop": "beans",
+  "lat": 90.0000,
+  "lon": 180.0000
+}
+
+###
+
+### 8. Bulk Testing
+
+# Test all crops with basic advice
+GET {{baseUrl}}/api/advice/basic/maize
+###
+GET {{baseUrl}}/api/advice/basic/beans
+###
+GET {{baseUrl}}/api/advice/basic/potatoes
+###
+GET {{baseUrl}}/api/advice/basic/bananas
+
+###
+
+### 9. Service Status Check
+
+# Check if all services are available
+GET {{baseUrl}}/api/advice/status
+
+###
+
+### Notes for Testing:
+
+# 1. Make sure the server is running
+# 2. Set up your .env file with API keys
+# 3. Test basic endpoints first (health, crops, season)
+# 4. Test basic advice endpoints (no external API calls)
+# 5. Test AI-powered advice (requires valid API keys)
+# 6. Test error scenarios and edge cases
+# 7. Monitor server logs for any issues
+
+# Expected Responses:
+# - Health endpoints: 200 OK with service status
+# - Basic advice: 200 OK with farming recommendations
+# - AI advice: 200 OK with AI-generated advice (if API keys valid)
+# - Validation errors: 400 Bad Request with error details
+# - Not found: 404 Not Found with available endpoints
+# - Server errors: 500 Internal Server Error
