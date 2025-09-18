@@ -22,12 +22,15 @@ const PORT = process.env.PORT || 3002;
 app.use(helmet());
 
 // CORS configuration
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://yourdomain.com'] 
-    : ['http://localhost:3000', 'http://localhost:3001'],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === "production"
+        ? process.env.CLIENT_URL || "https://plant-palse.vercel.app"
+        : ["https://plant-palse.vercel.app"],
+    credentials: true,
+  })
+);
 
 // Rate limiting
 const limiter = rateLimit({
